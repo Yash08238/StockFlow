@@ -7,13 +7,15 @@ module.exports = (passport) => {
     "Google OAuth callback URL:",
     `${process.env.BACKEND_URL}/api/user/google/callback`
   );
-  
+
   passport.use(
     new GoogleStrategy(
       {
         clientID: config.googleClientId,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${process.env.BACKEND_URL}/api/user/google/callback`,
+        callbackURL: `${
+          process.env.BACKEND_URL || "http://localhost:3000"
+        }/api/user/google/callback`,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {

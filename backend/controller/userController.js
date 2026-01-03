@@ -50,7 +50,7 @@ const userController = {
       // Generate JWT
       const jwtToken = jwt.sign(
         { userId: user._id, username: user.username },
-        config.secretKey,
+        config.jwtSecret,
         { expiresIn: "24h" }
       );
 
@@ -111,7 +111,7 @@ const userController = {
       // Generate JWT token
       const token = jwt.sign(
         { userId: savedUser.id, username: savedUser.username },
-        config.secretKey,
+        config.jwtSecret,
         { expiresIn: "1h" }
       );
 
@@ -135,8 +135,8 @@ const userController = {
       const user = await User.findOne({
         $or: [
           { username: username },
-          { email: username } // Allow login with email too
-        ]
+          { email: username }, // Allow login with email too
+        ],
       });
 
       if (!user) {
@@ -145,7 +145,11 @@ const userController = {
 
       // Check if user has a password (not Google OAuth only)
       if (!user.password) {
-        return errorResponse(res, 401, "This account uses Google Sign-In. Please use the Google login button.");
+        return errorResponse(
+          res,
+          401,
+          "This account uses Google Sign-In. Please use the Google login button."
+        );
       }
 
       // Compare the provided password with the hashed password
@@ -157,7 +161,7 @@ const userController = {
       // Generate JWT token
       const token = jwt.sign(
         { userId: user.id, username: user.username },
-        config.secretKey,
+        config.jwtSecret,
         { expiresIn: "1h" }
       );
 

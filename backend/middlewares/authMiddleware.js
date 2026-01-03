@@ -17,7 +17,7 @@ const verifyToken = (req, res, next) => {
       .json({ status: "error", message: "Malformed token" });
   }
 
-  jwt.verify(token, config.secretKey, (err, decoded) => {
+  jwt.verify(token, config.jwtSecret, (err, decoded) => {
     if (err) {
       return res
         .status(401)

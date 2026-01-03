@@ -40,7 +40,7 @@ router.get(
     // Generate Token
     const token = jwt.sign(
       { userId: req.user._id, username: req.user.username },
-      config.secretKey,
+      config.jwtSecret,
       { expiresIn: "24h" }
     );
     // Redirect to Frontend
