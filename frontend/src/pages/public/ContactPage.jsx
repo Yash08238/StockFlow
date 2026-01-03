@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { BsGeoAlt, BsTelephone, BsSend, BsCheckCircle } from "react-icons/bs";
+import {
+  BsGeoAlt,
+  BsTelephone,
+  BsSend,
+  BsCheckCircle,
+  BsEnvelope,
+} from "react-icons/bs";
 import PublicLayout from "../../layouts/PublicLayout";
 import toast from "react-hot-toast";
 
@@ -28,25 +34,44 @@ const ContactPage = () => {
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Contact Form Submission:", formData);
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    toast.success("Message sent successfully!");
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: "87168006-d84c-4a67-870f-36a222d0fc02",
+          subject: `StockFlow Contact: ${formData.name}`,
+          from_name: "StockFlow ERP",
+          ...formData,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSubmitted(true);
+        toast.success("Message sent successfully!");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        toast.error(result.message || "Something went wrong!");
+      }
+    } catch (error) {
+      console.error("Submission Error:", error);
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
     {
-      icon: <BsTelephone className="text-xl" />,
-      label: "Phone",
-      value: "+91 98765 43210",
-      href: "tel:+919876543210",
-    },
-    {
-      icon: <BsGeoAlt className="text-xl" />,
-      label: "Location",
-      value: "Bangalore, India",
-      href: null,
+      icon: <BsEnvelope className="text-xl" />,
+      label: "Email",
+      value: "stockflow.erp@gmail.com",
+      href: "mailto:stockflow.erp@gmail.com",
     },
   ];
 

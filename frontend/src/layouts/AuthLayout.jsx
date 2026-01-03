@@ -31,8 +31,12 @@ const AuthLayout = ({ children, title, subtitle }) => {
         <div className="relative flex flex-col justify-between p-10 xl:p-16 w-full">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg group-hover:shadow-purple-500/30 transition-shadow">
-              <BsBoxSeam className="text-white text-xl" />
+            <div className="w-16 h-16 flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="StockFlow"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-2xl font-bold text-white">
               Stock<span className="text-indigo-300">Flow</span>
@@ -69,8 +73,12 @@ const AuthLayout = ({ children, title, subtitle }) => {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <BsBoxSeam className="text-white text-lg" />
+              <div className="w-14 h-14 flex items-center justify-center">
+                <img
+                  src="/logo.png"
+                  alt="StockFlow"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="text-xl font-bold text-slate-900">
                 Stock<span className="text-indigo-600">Flow</span>

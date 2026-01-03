@@ -25,6 +25,7 @@ const Sales = () => {
   const [cart, setCart] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [customer, setCustomer] = useState({ name: "", email: "" });
+  const [discount, setDiscount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -107,12 +108,13 @@ const Sales = () => {
   };
 
   // Calculate totals
+  // Calculate totals
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
-  const tax = 0; // No tax for now
-  const total = subtotal + tax;
+  const discountAmount = (subtotal * discount) / 100;
+  const total = subtotal - discountAmount;
 
   // Process checkout - UNCHANGED
   const handleCheckout = async () => {
@@ -130,6 +132,7 @@ const Sales = () => {
       const payload = {
         customer: customer.name,
         customermail: customer.email,
+        discount: Number(discount),
         products: cart.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -141,6 +144,7 @@ const Sales = () => {
       setShowSuccess(true);
       setCart([]);
       setCustomer({ name: "", email: "" });
+      setDiscount(0);
       fetchProducts();
 
       setTimeout(() => setShowSuccess(false), 3000);
@@ -358,11 +362,33 @@ const Sales = () => {
             {/* Totals */}
             {cart.length > 0 && (
               <div className="border-t border-slate-200 pt-4 mt-4 space-y-2">
+                <Input
+                  label="Discount (%)"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={discount === 0 ? "" : discount}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setDiscount(0);
+                      return;
+                    }
+                    setDiscount(Math.min(100, Math.max(0, Number(val))));
+                  }}
+                  placeholder="0"
+                />
                 <div className="flex justify-between text-sm text-slate-600">
                   <span>Subtotal</span>
                   <span>₹{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold text-slate-900">
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-red-500">
+                    <span>Discount ({discount}%)</span>
+                    <span>-₹{discountAmount.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-lg font-bold text-slate-900 pt-2 border-t border-dashed border-slate-200">
                   <span>Total</span>
                   <span>₹{total.toLocaleString()}</span>
                 </div>

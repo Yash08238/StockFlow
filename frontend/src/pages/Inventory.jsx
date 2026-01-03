@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import Input from "../components/Input";
 import {
   BsPlus,
   BsFilter,
@@ -12,7 +13,6 @@ import {
 } from "react-icons/bs";
 import Modal from "../components/Modal";
 import Button from "../components/Button";
-import Input from "../components/Input";
 import Card from "../components/Card";
 import Badge from "../components/Badge";
 import EmptyState from "../components/EmptyState";
@@ -228,14 +228,13 @@ const Inventory = () => {
       <Card>
         <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
           {/* Search */}
-          <div className="relative flex-1 max-w-md">
-            <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
+          <div className="flex-1 max-w-md">
+            <Input
               placeholder="Search products..."
-              className="input-field pl-10 !mb-0"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              leftIcon={<BsSearch />}
+              className="!mb-0"
             />
           </div>
 

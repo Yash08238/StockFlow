@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 // Create Brevo SMTP transporter (ONCE)
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
-  port: 2525,
+  port: 587,
   secure: false,
   auth: {
     user: process.env.BREVO_SMTP_USER,
@@ -22,14 +22,21 @@ transporter.verify((error) => {
 });
 
 async function sendEmail(to, subject, text, attachmentPath = null) {
+  const attachments = [];
+  if (attachmentPath) {
+    if (typeof attachmentPath === "string") {
+      attachments.push({ filename: "bill.pdf", path: attachmentPath });
+    } else {
+      attachments.push({ filename: "bill.pdf", content: attachmentPath });
+    }
+  }
+
   const mailOptions = {
-    from: `H5 ERP <${process.env.EMAIL_FROM}>`,
+    from: process.env.EMAIL_FROM,
     to,
     subject,
     text,
-    attachments: attachmentPath
-      ? [{ filename: "bill.pdf", path: attachmentPath }]
-      : [],
+    attachments,
   };
 
   await transporter.sendMail(mailOptions);

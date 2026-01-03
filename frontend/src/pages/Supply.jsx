@@ -119,11 +119,8 @@ const Supply = () => {
                 Select Product
               </label>
 
-              <div className="relative">
-                <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  className="input-field pl-10 !mb-0"
+              <div className="max-w-md">
+                <Input
                   placeholder="Search products by name..."
                   value={searchQuery}
                   onChange={(e) => {
@@ -135,6 +132,8 @@ const Supply = () => {
                       setSelectedProduct(null);
                     }
                   }}
+                  leftIcon={<BsSearch />}
+                  className="!mb-0"
                 />
               </div>
 

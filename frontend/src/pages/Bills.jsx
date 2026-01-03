@@ -212,9 +212,10 @@ const Bills = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                            title="View/Download Invoice"
                           >
                             <BsDownload />
-                            PDF
+                            Download
                           </a>
                         ) : (
                           <span className="text-xs text-slate-400">—</span>

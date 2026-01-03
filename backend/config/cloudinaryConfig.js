@@ -11,7 +11,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "h5erp_uploads",
+    folder: "stockflow_uploads",
     resource_type: "auto",
     allowedFormats: ["jpg", "png", "jpeg", "pdf"],
   },

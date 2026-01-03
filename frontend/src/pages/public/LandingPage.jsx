@@ -96,6 +96,15 @@ const LandingPage = () => {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="text-center max-w-4xl mx-auto">
+            {/* Hero Logo */}
+            <div className="flex justify-center mb-8">
+              <img
+                src="/logo.png"
+                alt="StockFlow"
+                className="w-24 h-24 object-contain contrast-125 brightness-110 drop-shadow-2xl"
+              />
+            </div>
+
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 mb-8">
               <BsStarFill className="text-yellow-400 text-sm" />

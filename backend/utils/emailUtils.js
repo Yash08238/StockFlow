@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 // Create Brevo SMTP transporter
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
-  port: 2525,
+  port: 587,
   secure: false,
   auth: {
     user: process.env.BREVO_SMTP_USER,
@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 async function sendPasswordResetEmail(email, resetLink) {
   try {
     await transporter.sendMail({
-      from: `H5 ERP <${process.env.EMAIL_FROM}>`,
+      from: `StockFlow ERP <${process.env.EMAIL_FROM}>`,
       to: email,
       subject: "Password Reset Request",
       html: `

@@ -14,7 +14,7 @@ const cloudinaryUpload = {
    * @param {string} folder - Cloudinary folder name
    * @returns {Promise<{secure_url, public_id, resource_type}>}
    */
-  uploadFromFile: async (file, folder = "h5erp_uploads") => {
+  uploadFromFile: async (file, folder = "stockflow_uploads") => {
     try {
       const result = await cloudinary.uploader.upload(file.path, {
         folder: folder,
@@ -38,7 +38,7 @@ const cloudinaryUpload = {
    * @param {string} folder - Cloudinary folder name
    * @returns {Promise<{secure_url, public_id, resource_type}>}
    */
-  uploadFromBase64: async (base64String, folder = "h5erp_uploads") => {
+  uploadFromBase64: async (base64String, folder = "stockflow_uploads") => {
     try {
       // Ensure proper data URI format
       let dataUri = base64String;
@@ -69,13 +69,12 @@ const cloudinaryUpload = {
    * @param {string} folder - Cloudinary folder name
    * @returns {Promise<{secure_url, public_id, resource_type}>}
    */
-  uploadPDF: async (filePath, folder = "h5erp_bills") => {
+  uploadPDF: async (filePath, folder = "stockflow_bills") => {
     try {
       const result = await cloudinary.uploader.upload(filePath, {
         folder: folder,
-        resource_type: "raw",
-        use_filename: true,
-        unique_filename: false,
+        resource_type: "image",
+        format: "pdf",
       });
 
       return {
@@ -104,6 +103,56 @@ const cloudinaryUpload = {
     } catch (error) {
       console.error("Cloudinary delete error:", error);
       return false;
+    }
+  },
+
+  /**
+   * Upload a Buffer to Cloudinary
+   * @param {Buffer} buffer - File buffer
+   * @param {string} folder - Cloudinary folder
+   * @returns {Promise<{secure_url, public_id, resource_type}>}
+   */
+  uploadFromBuffer: (buffer, folder = "stockflow_bills") => {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: "raw",
+          public_id: `bill_${Date.now()}.pdf`,
+          use_filename: true,
+          unique_filename: false,
+        },
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary Stream Upload Error:", error);
+            reject(error);
+          } else {
+            resolve({
+              secure_url: result.secure_url,
+              public_id: result.public_id,
+              resource_type: result.resource_type,
+            });
+          }
+        }
+      );
+      stream.end(buffer);
+    });
+  },
+
+  /**
+   * Generate a forced download URL
+   * @param {string} url - Original secure URL
+   * @returns {string} - Download URL
+   */
+  getDownloadUrl: (url) => {
+    if (!url) return null;
+    try {
+      // Simply inject the attachment flag into the URL path
+      // This preserves version, extension, and public_id correctly
+      return url.replace("/upload/", "/upload/fl_attachment/");
+    } catch (error) {
+      console.error("Error generating download URL:", error);
+      return url;
     }
   },
 

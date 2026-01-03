@@ -59,6 +59,7 @@ const SignUp = () => {
     email: "",
     mobile: "",
     password: "",
+    confirmPassword: "",
     role: "user",
   };
 
@@ -75,6 +76,9 @@ const SignUp = () => {
     password: Yup.string()
       .min(6, "Password must be at least 6 characters")
       .required("Password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), null], "Passwords must match")
+      .required("Confirm Password is required"),
   });
 
   return (
@@ -160,25 +164,18 @@ const SignUp = () => {
               }
             />
 
-            {/* Terms */}
-            <div className="pt-2">
-              <label className="flex items-start gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
-                />
-                <span className="text-sm text-slate-600">
-                  I agree to the{" "}
-                  <a href="#" className="text-indigo-600 hover:underline">
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a href="#" className="text-indigo-600 hover:underline">
-                    Privacy Policy
-                  </a>
-                </span>
-              </label>
-            </div>
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              label="Confirm Password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm your password"
+              value={values.confirmPassword}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={touched.confirmPassword && errors.confirmPassword}
+              leftIcon={<BsLock />}
+            />
 
             {/* Submit Button */}
             <Button

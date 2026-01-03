@@ -49,7 +49,12 @@ const SignIn = () => {
         values
       );
       if (res.data && res.data.result && res.data.result.token) {
-        dispatch(login(res.data.result));
+        dispatch(
+          login({
+            ...res.data.result,
+            rememberMe: values.rememberMe,
+          })
+        );
         toast.success("Login Successful");
         navigate("/dashboard");
       } else {
@@ -73,6 +78,7 @@ const SignIn = () => {
   const initialValues = {
     username: "",
     password: "",
+    rememberMe: true,
   };
 
   const validationSchema = Yup.object({
@@ -143,6 +149,9 @@ const SignIn = () => {
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
+                  name="rememberMe"
+                  checked={values.rememberMe}
+                  onChange={handleChange}
                   className="w-4 h-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
                 />
                 <span className="text-sm text-slate-600 group-hover:text-slate-900">

@@ -15,8 +15,13 @@ const notificationService = require("../utils/notificationService");
 const salesController = {
   createSale: async (req, res) => {
     try {
-      const { customer, customermail, products } = req.body;
+      const { customer, customermail, products, discount = 0 } = req.body;
       const owner = req.user.userId;
+
+      // Validate discount
+      if (discount < 0 || discount > 100) {
+        return errorResponse(res, 400, "Invalid discount percentage");
+      }
 
       // ============ PHASE 1: VALIDATE ALL PRODUCTS FIRST (HARD LOCK) ============
       // Check all products BEFORE making any changes
@@ -99,7 +104,9 @@ const salesController = {
 
         // Calculate amount
         const price = product.price;
-        const amount = price * quantity;
+        const itemSubtotal = price * quantity;
+        const discountAmount = (itemSubtotal * discount) / 100;
+        const amount = itemSubtotal - discountAmount;
         const cp = product.cp || 0;
 
         // Create sale record
@@ -115,6 +122,8 @@ const salesController = {
           price,
           cp,
           amount,
+          subtotal: itemSubtotal,
+          discount: discount,
           date: new Date(),
         });
 
@@ -159,6 +168,12 @@ const salesController = {
         customerName: customer,
         customermail: customermail,
         sales: billProducts,
+        discountPercentage: discount,
+        subtotal: billProducts.reduce((sum, item) => sum + item.subtotal, 0),
+        discountAmount: billProducts.reduce(
+          (sum, item) => sum + (item.subtotal - item.amount),
+          0
+        ),
       };
 
       const fileName = `bill_${Date.now()}.pdf`;
@@ -169,67 +184,53 @@ const salesController = {
         fs.mkdirSync(path.join(__dirname, "../pdfs"), { recursive: true });
       }
 
-      // Generate PDF locally
-      generateBillPDF(billData, pdfFilePath);
-
-      // Wait for file to be written
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Generate PDF in memory
+      const pdfBuffer = await generateBillPDF(billData);
+      console.log(`📄 Generated PDF Buffer: ${pdfBuffer.length} bytes`);
 
       let pdfUrl = null;
 
+      // 1. Cloudinary Upload
       try {
-        // Upload to Cloudinary using utility
-        const uploadResult = await cloudinaryUpload.uploadPDF(
-          pdfFilePath,
-          "h5erp_bills"
+        const uploadResult = await cloudinaryUpload.uploadFromBuffer(
+          pdfBuffer,
+          "stockflow_bills"
         );
         pdfUrl = uploadResult.secure_url;
 
         // Update sales with PDF URL and success status
         for (const sale of createdSales) {
+          console.log("✅ PDF Generated & Uploaded:", pdfUrl);
           sale.pdfUrl = pdfUrl;
           sale.billStatus = "GENERATED";
           await sale.save();
         }
-
-        // ============ PHASE 5: SEND EMAIL WITH ATTACHMENT ============
-        const emailSubject = "Your Purchase Receipt - H5 ERP";
-        const emailBody = `Dear ${customer},\n\nThank you for your purchase!\n\nPlease find your bill attached to this email.\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nH5 ERP`;
-
-        // Send email (separate try/catch for clear error logging)
-        try {
-          console.log("📧 Attempting to send email to:", customermail);
-          console.log("📎 PDF path:", pdfFilePath);
-          console.log("📧 EMAIL_FROM:", process.env.EMAIL_FROM);
-          console.log("🔑 BREVO_SMTP_USER:", process.env.BREVO_SMTP_USER ? "✅ Set" : "❌ Missing");
-          
-          await sendEmail(customermail, emailSubject, emailBody, pdfFilePath);
-          console.log("✅ Email sent successfully to", customermail);
-        } catch (emailError) {
-          console.error("❌ Email sending failed:");
-          console.error("Error message:", emailError.message);
-          console.error("Full error:", emailError);
-          // Don't throw - let sale continue even if email fails
-        }
-
-        // Clean up local file AFTER sending email
-        fs.unlinkSync(pdfFilePath);
       } catch (uploadError) {
-        console.error("❌ Cloudinary Upload Error:", uploadError);
-
-        // Mark sales as FAILED for bill generation
+        console.error(
+          "❌ Cloudinary Upload Error (Bill URL won't be saved):",
+          uploadError.message
+        );
         for (const sale of createdSales) {
           sale.billStatus = "FAILED";
           await sale.save();
         }
-
-        // Try to clean up even on error
-        try {
-          if (fs.existsSync(pdfFilePath)) {
-            fs.unlinkSync(pdfFilePath);
-          }
-        } catch (e) {}
       }
+
+      // ============ PHASE 5: SEND EMAIL WITH ATTACHMENT ============
+      // 2. Send Email
+      const emailSubject = "Your Purchase Receipt - StockFlow ERP";
+      const emailBody = `Dear ${customer},\n\nThank you for your purchase!\n\nPlease find your bill attached to this email.\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nStockFlow ERP`;
+
+      try {
+        console.log("📧 Attempting to send email to:", customermail);
+        // Pass buffer as attachment
+        await sendEmail(customermail, emailSubject, emailBody, pdfBuffer);
+        console.log("✅ Email sent successfully to", customermail);
+      } catch (emailError) {
+        console.error("❌ Email sending failed:", emailError.message);
+      }
+
+      // 3. Cleanup (No file cleanup needed)
 
       successResponse(
         res,
@@ -256,7 +257,7 @@ const salesController = {
         quantity: sale.quantity,
         amount: sale.amount,
         date: sale.date.toISOString().split("T")[0],
-        pdfUrl: sale.pdfUrl,
+        pdfUrl: cloudinaryUpload.getDownloadUrl(sale.pdfUrl),
       }));
 
       successResponse(res, sales, "Sales retrieved successfully");

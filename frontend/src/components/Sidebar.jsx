@@ -48,10 +48,7 @@ const Sidebar = ({
     },
     {
       title: "Account",
-      items: [
-        { name: "Profile", icon: <BsPersonCircle />, path: "/profile" },
-        { name: "Notifications", icon: <BsBellFill />, path: "/notifications" },
-      ],
+      items: [{ name: "Profile", icon: <BsPersonCircle />, path: "/profile" }],
     },
   ];
 
@@ -87,8 +84,12 @@ const Sidebar = ({
               isCollapsed ? "justify-center w-full" : ""
             }`}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg shrink-0">
-              <BsBoxSeam className="text-white text-lg" />
+            <div className="w-9 h-9 flex items-center justify-center shrink-0">
+              <img
+                src="/logo.png"
+                alt="StockFlow"
+                className="w-full h-full object-contain"
+              />
             </div>
             {!isCollapsed && (
               <div className="overflow-hidden">

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BsList, BsX, BsBoxSeam } from "react-icons/bs";
+import { BsList, BsX, BsBoxSeam, BsGrid1X2Fill } from "react-icons/bs";
+import { useSelector } from "react-redux";
+import { selectUser } from "../redux/UsersSlice";
 
 /**
  * PublicLayout - Layout for public pages with Purple theme
@@ -8,6 +10,7 @@ import { BsList, BsX, BsBoxSeam } from "react-icons/bs";
 const PublicLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const user = useSelector(selectUser);
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -25,9 +28,11 @@ const PublicLayout = ({ children }) => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:shadow-purple-500/30 transition-shadow">
-                <BsBoxSeam className="text-white text-lg" />
-              </div>
+              <img
+                src="/logo.png"
+                alt="StockFlow"
+                className="w-12 h-12 object-contain"
+              />
               <span className="text-xl font-bold text-slate-900">
                 Stock<span className="text-indigo-600">Flow</span>
               </span>
@@ -52,15 +57,24 @@ const PublicLayout = ({ children }) => {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Link
-                to="/login"
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link to="/register" className="btn btn-primary">
-                Get Started Free
-              </Link>
+              {user ? (
+                <Link to="/dashboard" className="btn btn-primary">
+                  <BsGrid1X2Fill className="mr-2" />
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link to="/register" className="btn btn-primary">
+                    Get Started Free
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -92,20 +106,33 @@ const PublicLayout = ({ children }) => {
                 </Link>
               ))}
               <div className="pt-4 border-t border-slate-100 space-y-2">
-                <Link
-                  to="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="btn btn-primary w-full justify-center"
-                >
-                  Get Started Free
-                </Link>
+                {user ? (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="btn btn-primary w-full justify-center"
+                  >
+                    <BsGrid1X2Fill className="mr-2" />
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="btn btn-primary w-full justify-center"
+                    >
+                      Get Started Free
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -122,9 +149,11 @@ const PublicLayout = ({ children }) => {
             {/* Brand */}
             <div className="md:col-span-2">
               <Link to="/" className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                  <BsBoxSeam className="text-white text-lg" />
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="StockFlow"
+                  className="w-12 h-12 object-contain grayscale opacity-80"
+                />
                 <span className="text-xl font-bold text-white">
                   Stock<span className="text-indigo-400">Flow</span>
                 </span>

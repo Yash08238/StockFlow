@@ -65,7 +65,7 @@ app.get("/health", (req, res) => {
 
 // Root endpoint
 app.get("/", (req, res) => {
-  res.json({ message: "H5 ERP Backend API", version: "1.0.0" });
+  res.json({ message: "StockFlow ERP Backend API", version: "1.0.0" });
 });
 
 // 404 handler

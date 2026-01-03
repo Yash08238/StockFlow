@@ -20,6 +20,8 @@ import {
 } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 
+import { useNavigate } from "react-router-dom";
+
 /**
  * Profile Page - Professional user account management with Purple theme
  */
@@ -27,6 +29,7 @@ const Profile = () => {
   const user = useSelector(selectUser);
   const userId = useSelector(selectUserId);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     username: user?.username || "",
@@ -167,8 +170,8 @@ const Profile = () => {
           <div className="flex-1 space-y-6">
             {/* Username */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <BsPerson className="inline mr-2" />
+              <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                <BsPerson />
                 Username
               </label>
               {isEditing ? (
@@ -188,8 +191,8 @@ const Profile = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <BsEnvelope className="inline mr-2" />
+              <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                <BsEnvelope />
                 Email Address
               </label>
               <p className="px-4 py-2.5 bg-slate-50 rounded-xl text-slate-500 flex items-center gap-2">
@@ -202,8 +205,8 @@ const Profile = () => {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                <BsPhone className="inline mr-2" />
+              <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                <BsPhone />
                 Phone Number
               </label>
               {isEditing ? (
@@ -282,6 +285,20 @@ const Profile = () => {
           </div>
         </Card>
       </div>
+
+      {/* Support Section */}
+      <Card>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Need Help?</h3>
+            <p className="text-sm text-slate-500">
+              Have questions or need assistance? Our support team is here to
+              help.
+            </p>
+          </div>
+          <Button onClick={() => navigate("/contact")}>Contact Support</Button>
+        </div>
+      </Card>
     </div>
   );
 };
