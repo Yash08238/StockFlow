@@ -1,62 +1,102 @@
-import React from "react";
-import { BsList, BsPerson, BsArrowRightShort } from "react-icons/bs"; // Breadcrumb arrow
+import React, { useState, useRef, useEffect } from "react";
+import {
+  BsList,
+  BsSearch,
+  BsBell,
+  BsPersonCircle,
+  BsGearFill,
+  BsPower,
+  BsChevronDown,
+} from "react-icons/bs";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/UsersSlice";
 
+/**
+ * Header Component - Top navbar with Purple theme
+ */
 const Header = ({ OpenSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/");
   };
 
-  // Simple breadcrumb logic
-  const path = location.pathname.split("/").filter((x) => x);
-  const breadcrumb =
-    path.length > 0
-      ? path[0].charAt(0).toUpperCase() + path[0].slice(1)
-      : "Dashboard";
+  const getBreadcrumb = () => {
+    const pathSegments = location.pathname.split("/").filter((x) => x);
+    if (pathSegments.length === 0) return "Dashboard";
+    return pathSegments[0].charAt(0).toUpperCase() + pathSegments[0].slice(1);
+  };
 
   return (
-    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-3 md:px-6 z-20 shrink-0 relative">
-      <div className="flex items-center flex-1 min-w-0">
+    <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 z-30">
+      {/* Left Section */}
+      <div className="flex items-center gap-4 flex-1 min-w-0">
         <button
-          className="mr-2 md:mr-4 text-gray-500 hover:text-gray-700 md:hidden flex-shrink-0"
+          className="md:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
           onClick={OpenSidebar}
         >
-          <BsList size={24} />
+          <BsList size={22} />
         </button>
-        <div className="flex items-center text-xs md:text-sm text-gray-500 truncate">
-          <span
-            className="text-gray-400 hover:text-gray-600 cursor-pointer hidden sm:inline"
-            onClick={() => navigate("/dashboard")}
-          >
-            Home
-          </span>
-          <BsArrowRightShort size={20} className="mx-1 hidden sm:inline" />
-          <span className="font-medium text-gray-800 truncate">{breadcrumb}</span>
+
+        <div className="hidden sm:block">
+          <h1 className="text-lg font-semibold text-slate-900 truncate">
+            {getBreadcrumb()}
+          </h1>
+        </div>
+
+        {/* Search Bar */}
+        <div className="hidden lg:flex items-center flex-1 max-w-md ml-8">
+          <div className="relative w-full">
+            <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search products, sales, reports..."
+              className="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400"
+            />
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-        {/* Profile Dropdown Area (Simplified for now) */}
-        <div className="relative group flex items-center gap-2 md:gap-3 pl-2 md:pl-4 border-l border-gray-100">
-          <div className="text-right hidden md:block">
-            <p className="text-sm font-semibold text-gray-800 leading-none">
-              {user?.username || "User"}
-            </p>
-            <p className="text-xs text-teal-600 font-medium mt-1">
-              Administrator
-            </p>
-          </div>
+      {/* Right Section */}
+      <div className="flex items-center gap-2 md:gap-3">
+        <button className="lg:hidden p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+          <BsSearch size={18} />
+        </button>
 
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 p-0.5 shadow-md cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate('/profile')}>
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+        <button
+          onClick={() => navigate("/notifications")}
+          className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <BsBell size={18} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full ring-2 ring-white" />
+        </button>
+
+        <div className="hidden md:block w-px h-8 bg-slate-200 mx-1" />
+
+        {/* User Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-2 md:gap-3 p-1.5 md:pr-3 rounded-xl hover:bg-slate-100 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden shadow-sm">
               {user?.image ? (
                 <img
                   src={
@@ -68,18 +108,71 @@ const Header = ({ OpenSidebar }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <BsPerson className="text-teal-600 text-lg" />
+                <span className="text-white font-bold text-sm">
+                  {user?.username?.charAt(0)?.toUpperCase() || "U"}
+                </span>
               )}
             </div>
-          </div>
 
-          {/* Dropdown / Sign Out */}
-          <button
-            onClick={handleLogout}
-            className="ml-1 md:ml-2 text-xs font-semibold text-slate-500 hover:text-red-600 transition-colors"
-          >
-            Sign Out
+            <div className="hidden md:block text-left">
+              <p className="text-sm font-semibold text-slate-900 leading-none">
+                {user?.username || "User"}
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">Administrator</p>
+            </div>
+
+            <BsChevronDown
+              className={`hidden md:block text-slate-400 text-sm transition-transform ${
+                isDropdownOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 animate-scale-in origin-top-right z-50">
+              <div className="px-4 py-3 border-b border-slate-100">
+                <p className="text-sm font-semibold text-slate-900">
+                  {user?.username || "User"}
+                </p>
+                <p className="text-xs text-slate-500 truncate">
+                  {user?.email || "user@example.com"}
+                </p>
+              </div>
+
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    navigate("/profile");
+                  }}
+                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3"
+                >
+                  <BsPersonCircle className="text-slate-400 text-lg" />
+                  My Profile
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    navigate("/notifications");
+                  }}
+                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3"
+                >
+                  <BsGearFill className="text-slate-400 text-lg" />
+                  Settings
+                </button>
+              </div>
+
+              <div className="pt-1 border-t border-slate-100">
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"
+                >
+                  <BsPower className="text-red-500 text-lg" />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

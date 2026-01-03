@@ -7,12 +7,21 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  BsLock,
+  BsEye,
+  BsEyeSlash,
+  BsArrowLeft,
+  BsShieldLock,
+} from "react-icons/bs";
 
+/**
+ * Reset Password Page - Set new password with reset token
+ * All API logic preserved - UI enhanced
+ */
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState({ type: "", message: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -23,15 +32,27 @@ const ResetPassword = () => {
     return (
       <AuthLayout
         title="Invalid Link"
-        subtitle="Recovery link is missing required parameters."
+        subtitle="This password reset link is invalid or has expired."
       >
-        <div className="text-center">
-          <Link
-            to="/"
-            className="text-sm font-medium text-slate-600 hover:text-slate-900"
-          >
-            Back to Login
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-100 flex items-center justify-center">
+            <BsShieldLock className="text-3xl text-red-500" />
+          </div>
+          <p className="text-sm text-slate-600">
+            Please request a new password reset link.
+          </p>
+          <Link to="/forgotpassword" className="btn btn-primary inline-flex">
+            Request New Link
           </Link>
+          <div>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+            >
+              <BsArrowLeft />
+              Back to Sign In
+            </Link>
+          </div>
         </div>
       </AuthLayout>
     );
@@ -45,14 +66,16 @@ const ResetPassword = () => {
         newPassword: values.password,
       });
       toast.success("Password reset successful. Redirecting...");
-      setTimeout(() => navigate("/"), 2000);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
       console.error(error);
       if (error.response?.status === 403) {
         toast.error("Password reset not available for Google accounts");
-        setTimeout(() => navigate("/"), 2000);
+        setTimeout(() => navigate("/login"), 2000);
       } else {
-        toast.error(error.response?.data?.message || "Failed to reset password");
+        toast.error(
+          error.response?.data?.message || "Failed to reset password"
+        );
       }
     } finally {
       setSubmitting(false);
@@ -62,7 +85,7 @@ const ResetPassword = () => {
   return (
     <AuthLayout
       title="Set New Password"
-      subtitle="Please enter your new password below"
+      subtitle="Create a strong password for your account"
     >
       <Formik
         initialValues={{ password: "", confirmPassword: "" }}
@@ -84,25 +107,30 @@ const ResetPassword = () => {
           handleBlur,
           values,
         }) => (
-          <Form className="space-y-6">
+          <Form className="space-y-5">
             <Input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
               label="New Password"
-              placeholder="••••••••"
+              placeholder="Create a strong password"
               value={values.password}
               onChange={handleChange}
               onBlur={handleBlur}
               error={touched.password && errors.password}
+              leftIcon={<BsLock />}
               rightElement={
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-1"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  {showPassword ? (
+                    <BsEyeSlash size={18} />
+                  ) : (
+                    <BsEye size={18} />
+                  )}
                 </button>
               }
             />
@@ -111,19 +139,26 @@ const ResetPassword = () => {
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               label="Confirm Password"
-              placeholder="••••••••"
+              placeholder="Re-enter your password"
               value={values.confirmPassword}
               onChange={handleChange}
               onBlur={handleBlur}
               error={touched.confirmPassword && errors.confirmPassword}
+              leftIcon={<BsLock />}
               rightElement={
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
                 >
-                  {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  {showConfirmPassword ? (
+                    <BsEyeSlash size={18} />
+                  ) : (
+                    <BsEye size={18} />
+                  )}
                 </button>
               }
             />
@@ -132,12 +167,13 @@ const ResetPassword = () => {
               Reset Password
             </Button>
 
-            <div className="mt-6 text-center text-sm text-gray-600">
+            <div className="text-center">
               <Link
-                to="/"
-                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                to="/login"
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
               >
-                ← Back to Sign In
+                <BsArrowLeft />
+                Back to Sign In
               </Link>
             </div>
           </Form>

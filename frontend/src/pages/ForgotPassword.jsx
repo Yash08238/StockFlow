@@ -7,23 +7,32 @@ import { Link } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { BsEnvelope, BsArrowLeft } from "react-icons/bs";
 
+/**
+ * Forgot Password Page - Request password reset
+ * All API logic preserved - UI enhanced
+ */
 const ForgotPassword = () => {
-  const [status, setStatus] = useState({ type: "", message: "" });
-
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/pass/forgot-password`,
         values
       );
-      toast.success("If an account exists, a reset link has been sent. Please check your inbox.");
+      toast.success(
+        "If an account exists, a reset link has been sent. Please check your inbox."
+      );
     } catch (error) {
       console.error(error);
       if (error.response?.status === 403) {
-        toast.error("This account uses Google Sign-In. Please continue using Google to log in.");
+        toast.error(
+          "This account uses Google Sign-In. Please continue using Google to log in."
+        );
       } else {
-        toast.error(error.response?.data?.message || "Failed to process request");
+        toast.error(
+          error.response?.data?.message || "Failed to process request"
+        );
       }
     } finally {
       setSubmitting(false);
@@ -56,12 +65,14 @@ const ForgotPassword = () => {
             <Input
               id="email"
               name="email"
+              type="email"
               label="Email Address"
               placeholder="name@company.com"
               value={values.email}
               onChange={handleChange}
               onBlur={handleBlur}
               error={touched.email && errors.email}
+              leftIcon={<BsEnvelope />}
             />
 
             <Button type="submit" className="w-full" isLoading={isSubmitting}>
@@ -70,10 +81,11 @@ const ForgotPassword = () => {
 
             <div className="text-center">
               <Link
-                to="/"
-                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                to="/login"
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
               >
-                ← Back to Sign In
+                <BsArrowLeft />
+                Back to Sign In
               </Link>
             </div>
           </Form>

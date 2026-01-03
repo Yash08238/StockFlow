@@ -8,13 +8,20 @@ import {
   BsTrash,
   BsCamera,
   BsUpload,
+  BsBoxSeam,
 } from "react-icons/bs";
 import Modal from "../components/Modal";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Card from "../components/Card";
+import Badge from "../components/Badge";
+import EmptyState from "../components/EmptyState";
 import CameraCapture from "../components/CameraCapture";
 
+/**
+ * Inventory Page - Product catalog and stock management
+ * Redesigned UI with status badges - all API calls preserved
+ */
 const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +38,7 @@ const Inventory = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
-  // Fetch categories from API
+  // Fetch categories from API - UNCHANGED
   const fetchCategories = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/categories`);
@@ -41,7 +48,7 @@ const Inventory = () => {
     }
   };
 
-  // Add Product State - Enhanced with new fields
+  // Add Product State - UNCHANGED
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
@@ -55,7 +62,6 @@ const Inventory = () => {
     lastPurchaseCost: "",
   });
 
-  // Preview image source
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
@@ -63,6 +69,7 @@ const Inventory = () => {
     fetchCategories();
   }, []);
 
+  // Fetch products - UNCHANGED
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -81,6 +88,7 @@ const Inventory = () => {
     }
   };
 
+  // Add product handler - UNCHANGED
   const handleAddProduct = async () => {
     try {
       const formData = new FormData();
@@ -88,7 +96,7 @@ const Inventory = () => {
       formData.append("price", newProduct.price);
       formData.append("cp", newProduct.cp || 0);
       formData.append("inventory", newProduct.inventory);
-      formData.append("categoryId", newProduct.categoryId); // Use categoryId
+      formData.append("categoryId", newProduct.categoryId);
       formData.append("minThreshold", newProduct.minThreshold || 10);
 
       if (newProduct.preferredSupplierName) {
@@ -101,7 +109,6 @@ const Inventory = () => {
         formData.append("lastPurchaseCost", newProduct.lastPurchaseCost);
       }
 
-      // Handle image - either file or base64
       if (newProduct.image) {
         formData.append("image", newProduct.image);
       } else if (newProduct.base64Image) {
@@ -161,6 +168,7 @@ const Inventory = () => {
     setIsDeleteModalOpen(true);
   };
 
+  // Delete handler - UNCHANGED
   const handleDelete = async () => {
     if (!productToDelete) return;
     try {
@@ -177,62 +185,65 @@ const Inventory = () => {
     }
   };
 
-  // Get all categories as flat array for filtering
   const allCategories = [...categories.system, ...categories.custom];
 
   const filteredProducts = products.filter((p) => {
-    // Filter by category name (legacy string field)
     const matchesCategory = filter ? p.category === filter : true;
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  // Use minThreshold for stock status (or default 10)
+  // Stock status with badges
   const getStockStatus = (product) => {
     const threshold = product.minThreshold || 10;
-    if (product.inventory > threshold)
-      return { label: "IN STOCK", color: "bg-emerald-100 text-emerald-800" };
-    if (product.inventory > 0)
-      return { label: "LOW STOCK", color: "bg-amber-100 text-amber-800" };
-    return { label: "OUT OF STOCK", color: "bg-red-100 text-red-800" };
+    if (product.inventory === 0) {
+      return { label: "Out of Stock", variant: "danger" };
+    }
+    if (product.inventory <= threshold * 0.5) {
+      return { label: "Low Stock", variant: "danger" };
+    }
+    if (product.inventory <= threshold) {
+      return { label: "Medium", variant: "warning" };
+    }
+    return { label: "In Stock", variant: "success" };
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Inventory</h1>
-          <p className="text-sm text-slate-500">
-            Manage product catalog and stock levels.
+          <h1 className="page-title">Inventory</h1>
+          <p className="page-subtitle">
+            Manage your product catalog and stock levels
           </p>
         </div>
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <BsPlus size={18} /> Add Product
+        <Button onClick={() => setIsModalOpen(true)}>
+          <BsPlus className="text-lg" />
+          Add Product
         </Button>
       </div>
 
-      <Card className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full max-w-sm">
-            <BsSearch className="absolute left-3 top-3 text-gray-400" />
+      {/* Filters */}
+      <Card>
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
+            <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search products..."
-              className="input-field pl-10"
+              className="input-field pl-10 !mb-0"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
-              <BsFilter className="inline mr-1" /> Filter:
-            </span>
+          {/* Category Filter */}
+          <div className="flex items-center gap-2">
+            <BsFilter className="text-slate-400" />
             <select
-              className="input-field py-1.5"
+              className="input-field !mb-0 w-auto min-w-[180px]"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             >
@@ -260,117 +271,99 @@ const Inventory = () => {
         </div>
       </Card>
 
-      <Card className="p-0 overflow-hidden border border-slate-200 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Product Name
-                </th>
-                <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
-                  Sell Price
-                </th>
-                <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
-                  Cost Price
-                </th>
-                <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
-                  Stock
-                </th>
-                <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">
-                  Status
-                </th>
-                <th className="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {loading ? (
+      {/* Products Table */}
+      <Card padding={false}>
+        {loading ? (
+          <div className="py-16 text-center text-slate-500">
+            <div className="animate-pulse">Loading inventory...</div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <EmptyState
+            icon={<BsBoxSeam className="text-3xl text-slate-400" />}
+            title={
+              products.length === 0 ? "No products yet" : "No matches found"
+            }
+            description={
+              products.length === 0
+                ? "Add your first product to get started"
+                : "Try adjusting your search or filter"
+            }
+            actionLabel={products.length === 0 ? "Add Product" : undefined}
+            onAction={
+              products.length === 0 ? () => setIsModalOpen(true) : undefined
+            }
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-modern">
+              <thead>
                 <tr>
-                  <td
-                    colSpan="7"
-                    className="p-8 text-center text-sm text-slate-500"
-                  >
-                    Loading inventory data...
-                  </td>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th className="text-right">Price</th>
+                  <th className="text-right">Cost</th>
+                  <th className="text-right">Stock</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-center w-16">Actions</th>
                 </tr>
-              ) : filteredProducts.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="p-8 text-center text-sm text-slate-500"
-                  >
-                    No products found matching criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredProducts.map((product) => {
+              </thead>
+              <tbody>
+                {filteredProducts.map((product) => {
                   const stockStatus = getStockStatus(product);
                   return (
-                    <tr
-                      key={product._id}
-                      className="hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="p-3 text-sm font-medium text-slate-900 border-r border-slate-50">
+                    <tr key={product._id}>
+                      <td>
                         <div className="flex items-center gap-3">
                           {product.imageUrl ? (
                             <img
                               src={product.imageUrl}
-                              alt=""
-                              className="w-10 h-10 rounded border border-slate-200 object-cover"
+                              alt={product.name}
+                              className="w-10 h-10 rounded-lg object-cover border border-slate-200"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-xs text-slate-400">
-                              No Img
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
+                              <BsBoxSeam />
                             </div>
                           )}
-                          {product.name}
+                          <span className="font-medium">{product.name}</span>
                         </div>
                       </td>
-                      <td className="p-3 text-sm text-slate-600 border-r border-slate-50">
-                        {product.category}
+                      <td className="text-slate-600">
+                        {product.category || "—"}
                       </td>
-                      <td className="p-3 text-sm font-mono text-slate-700 text-right border-r border-slate-50">
-                        ₹{product.price}
-                      </td>
-                      <td className="p-3 text-sm font-mono text-slate-500 text-right border-r border-slate-50">
+                      <td className="text-right font-mono">₹{product.price}</td>
+                      <td className="text-right font-mono text-slate-500">
                         ₹{product.cp || 0}
                       </td>
-                      <td className="p-3 text-sm font-mono text-slate-700 text-right border-r border-slate-50">
-                        {product.inventory}
+                      <td className="text-right">
+                        <span className="font-mono">{product.inventory}</span>
                         {product.minThreshold && (
                           <span className="text-xs text-slate-400 block">
                             min: {product.minThreshold}
                           </span>
                         )}
                       </td>
-                      <td className="p-3 text-center border-r border-slate-50">
-                        <span
-                          className={`inline-flex px-2 py-0.5 text-xs font-bold rounded ${stockStatus.color}`}
-                        >
+                      <td className="text-center">
+                        <Badge variant={stockStatus.variant} dot>
                           {stockStatus.label}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="p-3 text-center">
+                      <td className="text-center">
                         <button
                           onClick={() => confirmDelete(product)}
-                          className="text-slate-400 hover:text-red-600 transition-colors p-2"
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete Product"
                         >
-                          <BsTrash size={18} />
+                          <BsTrash />
                         </button>
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {/* Add Product Modal */}
@@ -380,16 +373,19 @@ const Inventory = () => {
           setIsModalOpen(false);
           resetForm();
         }}
-        title="New Product Entry"
+        title="Add New Product"
+        subtitle="Fill in the product details"
+        size="lg"
       >
-        <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+        <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-2 -mr-2">
           <Input
             label="Product Name"
             value={newProduct.name}
             onChange={(e) =>
               setNewProduct({ ...newProduct, name: e.target.value })
             }
-            placeholder="Official Product Name"
+            placeholder="Enter product name"
+            required
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -401,7 +397,8 @@ const Inventory = () => {
               onChange={(e) =>
                 setNewProduct({ ...newProduct, price: e.target.value })
               }
-              placeholder="Enter selling price"
+              placeholder="0"
+              required
             />
             <Input
               label="Cost Price (₹)"
@@ -411,7 +408,7 @@ const Inventory = () => {
               onChange={(e) =>
                 setNewProduct({ ...newProduct, cp: e.target.value })
               }
-              placeholder="Enter cost price"
+              placeholder="0"
             />
             <Input
               label="Initial Stock"
@@ -421,27 +418,29 @@ const Inventory = () => {
               onChange={(e) =>
                 setNewProduct({ ...newProduct, inventory: e.target.value })
               }
-              placeholder="Enter stock quantity"
+              placeholder="0"
+              required
             />
             <Input
-              label="Min Threshold"
+              label="Low Stock Threshold"
               type="number"
               min="0"
               value={newProduct.minThreshold}
               onChange={(e) =>
                 setNewProduct({ ...newProduct, minThreshold: e.target.value })
               }
-              placeholder="Low stock alert level"
+              placeholder="10"
             />
           </div>
 
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-medium text-slate-700">
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Category
             </label>
             <div className="flex gap-2">
               <select
-                className="input-field flex-1"
+                className="input-field flex-1 !mb-0"
                 value={newProduct.categoryId}
                 onChange={(e) =>
                   setNewProduct({ ...newProduct, categoryId: e.target.value })
@@ -449,7 +448,7 @@ const Inventory = () => {
               >
                 <option value="">Select Category</option>
                 {categories.system.length > 0 && (
-                  <optgroup label="Default Categories">
+                  <optgroup label="Default">
                     {categories.system.map((c) => (
                       <option key={c._id} value={c._id}>
                         {c.name}
@@ -458,7 +457,7 @@ const Inventory = () => {
                   </optgroup>
                 )}
                 {categories.custom.length > 0 && (
-                  <optgroup label="Your Categories">
+                  <optgroup label="Custom">
                     {categories.custom.map((c) => (
                       <option key={c._id} value={c._id}>
                         {c.name}
@@ -470,8 +469,7 @@ const Inventory = () => {
               <button
                 type="button"
                 onClick={() => setIsAddingCategory(!isAddingCategory)}
-                className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 text-slate-600"
-                title="Add new category"
+                className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 text-slate-600 transition-colors"
               >
                 {isAddingCategory ? "✕" : "+"}
               </button>
@@ -480,13 +478,13 @@ const Inventory = () => {
               <div className="mt-2 flex gap-2">
                 <input
                   type="text"
-                  className="input-field flex-1"
+                  className="input-field flex-1 !mb-0"
                   placeholder="New category name"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                 />
-                <button
-                  type="button"
+                <Button
+                  size="sm"
                   onClick={async () => {
                     if (!newCategoryName.trim()) {
                       toast.error("Enter category name");
@@ -495,15 +493,12 @@ const Inventory = () => {
                     try {
                       const res = await axios.post(
                         `${import.meta.env.VITE_API_URL}/categories`,
-                        {
-                          name: newCategoryName.trim(),
-                        }
+                        { name: newCategoryName.trim() }
                       );
                       toast.success("Category created!");
                       setNewCategoryName("");
                       setIsAddingCategory(false);
                       fetchCategories();
-                      // Auto-select the new category
                       if (res.data.result?._id) {
                         setNewProduct({
                           ...newProduct,
@@ -516,16 +511,15 @@ const Inventory = () => {
                       );
                     }
                   }}
-                  className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 text-sm"
                 >
                   Add
-                </button>
+                </Button>
               </div>
             )}
           </div>
 
-          {/* Supplier Info (Optional) */}
-          <div className="border-t pt-4 mt-2">
+          {/* Supplier Info */}
+          <div className="border-t border-slate-200 pt-4 mt-4">
             <p className="text-xs font-medium text-slate-500 uppercase mb-3">
               Supplier Info (Optional)
             </p>
@@ -539,7 +533,7 @@ const Inventory = () => {
                     preferredSupplierName: e.target.value,
                   })
                 }
-                placeholder="Preferred supplier"
+                placeholder="Supplier name"
               />
               <Input
                 label="Last Purchase Cost (₹)"
@@ -551,23 +545,23 @@ const Inventory = () => {
                     lastPurchaseCost: e.target.value,
                   })
                 }
+                placeholder="0"
               />
             </div>
           </div>
 
-          {/* Image Upload Section */}
-          <div className="border border-slate-200 p-4 rounded-lg bg-slate-50">
-            <label className="mb-2 text-xs font-medium text-slate-500 uppercase block">
-              Product Image
+          {/* Image Upload */}
+          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+            <label className="block text-xs font-medium text-slate-500 uppercase mb-3">
+              Product Image *
             </label>
 
-            {/* Image Preview */}
             {imagePreview && (
-              <div className="mb-3 relative">
+              <div className="relative mb-3">
                 <img
                   src={imagePreview}
                   alt="Preview"
-                  className="w-full h-40 object-contain rounded border bg-white"
+                  className="w-full h-40 object-contain rounded-lg border bg-white"
                 />
                 <button
                   onClick={() => {
@@ -578,26 +572,25 @@ const Inventory = () => {
                       base64Image: null,
                     });
                   }}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 text-xs hover:bg-red-600"
+                  className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-colors"
                 >
                   ✕
                 </button>
               </div>
             )}
 
-            {/* Upload Options */}
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setIsCameraOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-colors text-sm font-medium"
               >
                 <BsCamera size={18} />
-                Capture from Camera
+                Capture
               </button>
-              <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer">
+              <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-800 transition-colors text-sm font-medium cursor-pointer">
                 <BsUpload size={18} />
-                Upload from Device
+                Upload
                 <input
                   type="file"
                   accept="image/*"
@@ -607,23 +600,24 @@ const Inventory = () => {
               </label>
             </div>
           </div>
+        </div>
 
-          <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setIsModalOpen(false);
-                resetForm();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleAddProduct}>Create Record</Button>
-          </div>
+        {/* Modal Footer */}
+        <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-slate-100">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setIsModalOpen(false);
+              resetForm();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleAddProduct}>Add Product</Button>
         </div>
       </Modal>
 
-      {/* Camera Capture Modal */}
+      {/* Camera Capture */}
       {isCameraOpen && (
         <CameraCapture
           onCapture={handleCameraCapture}
@@ -635,28 +629,24 @@ const Inventory = () => {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Confirm Deletion"
+        title="Delete Product"
+        size="sm"
       >
-        <div className="space-y-4">
-          <p className="text-slate-600">
-            Are you sure you want to delete{" "}
-            <strong>{productToDelete?.name}</strong>? This action cannot be
-            undone and will remove the product and its image permanently.
-          </p>
-          <div className="flex justify-end gap-3 pt-2">
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeleteModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={handleDelete}
-            >
-              Delete Product
-            </Button>
-          </div>
+        <p className="text-slate-600 mb-6">
+          Are you sure you want to delete{" "}
+          <strong className="text-slate-900">{productToDelete?.name}</strong>?
+          This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => setIsDeleteModalOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
         </div>
       </Modal>
     </div>

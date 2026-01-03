@@ -1,51 +1,98 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BsX } from "react-icons/bs";
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+/**
+ * Modal Component - Enhanced with animations and better overlay
+ */
+const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  children,
+  size = "md",
+  showClose = true,
+}) => {
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
+  const sizes = {
+    sm: "max-w-md",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-[90vw]",
+  };
+
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        backgroundColor: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-    >
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
       <div
-        className="bg-white rounded-lg shadow-xl"
-        style={{
-          width: "90%",
-          maxWidth: "500px",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          animation: "fadeIn 0.2s ease-out",
-        }}
-      >
-        <div className="flex justify-between items-center p-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100"
-          >
-            <BsX size={24} />
-          </button>
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+        onClick={onClose}
+      />
+
+      {/* Modal Container */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        {/* Modal Panel */}
+        <div
+          className={`
+            relative w-full ${sizes[size]} 
+            bg-white rounded-2xl shadow-2xl 
+            animate-scale-in
+          `}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          {(title || showClose) && (
+            <div className="flex items-start justify-between p-5 border-b border-slate-100">
+              <div>
+                {title && (
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    {title}
+                  </h3>
+                )}
+                {subtitle && (
+                  <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
+                )}
+              </div>
+              {showClose && (
+                <button
+                  onClick={onClose}
+                  className="p-1.5 -mr-1.5 -mt-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <BsX size={20} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="p-5">{children}</div>
         </div>
-        <div className="p-4">{children}</div>
       </div>
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 };

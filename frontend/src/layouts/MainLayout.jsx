@@ -2,35 +2,38 @@ import React, { useState } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
+/**
+ * MainLayout - Modern dashboard layout with collapsible sidebar
+ * Wraps all protected/authenticated pages
+ */
 const MainLayout = ({ children }) => {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const OpenSidebar = () => {
+  const toggleSidebar = () => {
     setOpenSidebarToggle(!openSidebarToggle);
   };
 
   return (
-    <div className="h-screen flex overflow-hidden relative">
+    <div className="h-screen flex overflow-hidden bg-slate-50">
+      {/* Sidebar */}
       <Sidebar
         openSidebarToggle={openSidebarToggle}
-        OpenSidebar={OpenSidebar}
+        OpenSidebar={toggleSidebar}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
       />
-      
+
+      {/* Main Content Area */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header OpenSidebar={OpenSidebar} />
-        
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6">
-          {children}
+        {/* Header */}
+        <Header OpenSidebar={toggleSidebar} />
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scrollbar-thin">
+          <div className="max-w-7xl mx-auto animate-fade-in">{children}</div>
         </main>
       </div>
-      
-      {/* Mobile overlay */}
-      {openSidebarToggle && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={OpenSidebar}
-        />
-      )}
     </div>
   );
 };
